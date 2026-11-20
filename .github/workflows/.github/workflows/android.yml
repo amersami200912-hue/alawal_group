@@ -1,0 +1,48 @@
+
+name: Build ALAWAL GROUP Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ALAWAL_GROUP_MOBILE_STARTER.zip'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Extract project
+        run: |
+          unzip ALAWAL_GROUP_MOBILE_STARTER.zip
+          cd alawal_app
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: Build APK
+        run: |
+          cd alawal_app/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALAWAL-GROUP-TEST-APK
+          path: alawal_app/android/app/build/outputs/apk/debug/app-debug.apk
